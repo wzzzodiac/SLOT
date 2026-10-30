@@ -6,9 +6,13 @@ Public site: independent GitHub repository and GitHub Pages linked from the pers
 
 Email delivery is automatic after a valid submission. Manual calendar import remains Walter's decision. No Calendar API, availability checks, automatic invitations or guest email.
 
-Design selected under explicit delegation: SLOT, a warm paper admission ticket inside a dark orbital frame. Large compact type, mint action, short labels. Success dispatches the ticket into an envelope; absent code collapses the page into a singularity and presents a reload message. Reduced motion preserves all messages without the effect.
+## Current design — gallery-first redesign
 
-References: frontend-patterns (local toolkit phase-14 snapshot), its native continuity and coordinated choreography studies, opened and operated locally; HTML5 UP Dimension (https://html5up.net/dimension, visually observed 2026-10-30) for a focused single-screen composition; Codrops Rapid Image Layers Animation (https://tympanus.net/codrops/2020/04/07/rapid-image-layers-animation/, article visually observed 2026-10-30) for the principle of coordinated departure/reveal. Original implementation; no template code, photography, proprietary fonts or demo assets adopted. Browser animation uses native Web Animations, without GSAP or external runtime assets.
+The first ticket/orbit design was rejected by Walter as too familiar. The redesigned page has only SLOT, a date calendar, time selection, Name, Topic, Code and Send. No hero, slogan or promotional subtitle. The old local study/HTML5 UP direction is superseded.
+
+Observed 2026-10-30: started at https://curated.design/inspiration/productivity/ and https://curated.design/inspiration/neobrutalism/, then opened WeekSync, IsoMeet, Berd and Utopia Tokyo. Selected https://www.utopiatokyo.com/ for its vivid red field, black typographic hierarchy and ruled graphic composition, adapted into a functional coral scheduling board. Its art direction is credited to SPOTHEROZ (https://spotheroz.ch/) and development to Andrew Measham on the source site. WeekSync (https://weeksync.app/) informed calendar interaction research. IsoMeet's hero and Berd's 3D workspace were observed but not adopted. Curated is credited as the discovery source.
+
+This is inspiration-only adaptation: original HTML/CSS/JS, SVG icon and system fonts; no source code, artwork, logos, proprietary fonts or template assets were copied. Credits are in an accessible dialog rather than permanent promotional copy. Native animation preserves missing-code collapse and a confirmed-send checkmark; reduced motion preserves outcomes. The private generator uses the same graphic language and functional labels. Calendar navigation supports keyboard arrows and year boundaries; past/out-of-range dates are disabled. Backend authorization, storage, rate limits and mail semantics are unchanged.
 
 Operational caveat: one logical mail per code, not exactly-once physical delivery. Gmail API has no provider-level idempotency key. Ambiguous post-send failures must stop for owner review instead of blindly retrying. Connection failures before sending can retry safely. Credentials and tokens remain server-side.
 
@@ -21,3 +25,7 @@ Verification: 36 automated tests passed, including 50 competing mocked submissio
 Walter requested a clearly structured email. A second deployed end-to-end test arrived with Name, Topic, Date and time, a separate SLOT footer and the ICS. Its received ICS preserved the submitted name and full multiline note and encoded 2026-10-31 14:00–14:30 Berlin correctly.
 
 Cloudflare's assets-upload-session API failed twice with HTTP 500/10013 during the final update; a later controlled attempt succeeded without changing the active hosting mode. Atlas reviewed the contingency and the security boundaries. A generated bundled-asset fallback is available for future provider incidents, but production continues to use Static Assets. The health endpoint reports a deterministic source build identifier. Published build at delivery: 037090573ef0d4b7b4c9; Cloudflare version 8270c1a2-c7a1-445b-a525-d895cfc76219.
+
+Redesign verification: 38 tests pass, including calendar leap-day/six-week layout and year navigation, plus the existing security/concurrency/OAuth/ICS suite. Public responsive interaction and deployment checks are recorded separately after publication.
+
+Redesign backend published build: dd2f961fb55ae95f7245, Worker version 505ba5e8-5052-44fa-a031-d690298be8ec, normal Static Assets deployment. No schema, OAuth, Access, secret, permission or billing changes. The associated frontend-patterns correction is in the private toolkit 0.13.8, PR #18, and installed once in user scope; historical project snapshots are preserved.

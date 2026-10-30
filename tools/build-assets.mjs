@@ -2,7 +2,7 @@ import {readFile,readdir,mkdir,writeFile} from 'node:fs/promises';
 import {createHash} from 'node:crypto';
 
 const root=new URL('../',import.meta.url);
-const names=['index.html','privacy.html','style.css','app.js','config.js','icon.svg','admin/index.html','admin/admin.css','admin/admin.js'];
+const names=['index.html','privacy.html','style.css','app.js','calendar.js','config.js','icon.svg','admin/index.html','admin/admin.css','admin/admin.js'];
 const types={html:'text/html; charset=utf-8',css:'text/css; charset=utf-8',js:'text/javascript; charset=utf-8',svg:'image/svg+xml'};
 const files={};
 for(const name of names)files['/'+name]={type:types[name.split('.').at(-1)],body:await readFile(new URL('public/'+name,root),'utf8')};

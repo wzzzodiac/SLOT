@@ -38,6 +38,6 @@ The one-minute Cron handles queued mail. No active PC is needed. Provider failur
 
 ## Design and verification
 
-Original ticket/orbit design and native browser animation. Reference credits are in the page and [decisions](docs/decisions.md). Reduced-motion users receive the same outcomes without the collapse. Empty-code submission is a playful UI transition; backend validation applies independently.
+Calendar-first interface: SLOT, a ruled coral date/time board and the proposal fields. Visual research started in Curated and the actual Utopia Tokyo site; credits are accessible from the page and [decisions](docs/decisions.md). Original code and assets, with native browser animation. Reduced-motion users receive the same outcomes without the collapse. Empty-code submission is a playful UI transition; backend validation applies independently.
 
 The initial self-email ICS test imported correctly on the owner's iPhone with the expected Berlin time. The deployed Gmail OAuth flow also delivered a real self-email with its ICS attachment, checked through Gmail after submission from GitHub Pages. Automated tests use synthetic data and mocked Gmail; a separate workerd/D1 runtime check covers concurrency. See [decisions and verification](docs/decisions.md) for the scope and remaining physical-device check.

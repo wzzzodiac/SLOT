@@ -2,46 +2,41 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#101815"><meta name="description" content="A little time with Walter. One private pass, one proposal.">
+  <meta name="theme-color" content="#ff4b38"><meta name="description" content="SLOT. Send an appointment proposal with a private code.">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self' https://slot-private-invites.slot-private-invites.workers.dev; base-uri 'none'; form-action 'none'">
-  <title>SLOT — a little time</title>
-  <link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css">
-  <script src="config.js" defer></script><script src="app.js" type="module"></script>
+  <title>SLOT</title><link rel="icon" href="icon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css">
+  <script src="app.js" type="module"></script>
 </head>
 <body>
-  <div class="stars" aria-hidden="true"></div>
-  <div id="page">
-    <header class="top"><a class="wordmark" href="./" aria-label="SLOT home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 2v28M2 16h28M6 6l20 20M6 26 26 6"/></svg>SLOT<span>by Walter</span></a><a class="hub-link" href="https://wzzzodiac.github.io/">Back to the hub <span aria-hidden="true">↗</span></a></header>
-    <main class="layout">
-      <section class="intro">
-        <p class="eyebrow"><span class="signal"></span> A VERY SELECTIVE OPEN DOOR</p>
-        <h1>A little<br> time.<br><em>Just us.</em></h1>
-        <p class="intro-copy">Got a pass? Make a plan.<br>Walter takes it from there.</p>
-        <div class="orbit-art" aria-hidden="true"><div class="orbit orbit-a"></div><div class="orbit orbit-b"></div><div class="planet"></div><span class="orbit-dot"></span><span class="orbit-caption">GOOD COMPANY. LIMITED ORBIT.</span></div>
+  <main class="app" id="page">
+    <header class="masthead"><h1>SLOT</h1><a class="icon-button hub-link" href="https://wzzzodiac.github.io/" aria-label="Back to the hub" title="Back to the hub">↗</a></header>
+    <form id="proposal-form" class="scheduler" novalidate>
+      <section class="calendar-panel panel" aria-label="Date">
+        <div class="panel-label">Date</div>
+        <div class="month-toolbar"><h2 id="month-title" aria-live="polite"></h2><div class="month-controls"><button id="previous-month" class="icon-button" type="button" aria-label="Previous month">←</button><button id="next-month" class="icon-button" type="button" aria-label="Next month">→</button></div></div>
+        <div class="weekdays" aria-hidden="true"><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+        <div id="calendar-days" class="calendar-days" role="group" aria-labelledby="month-title"></div>
+        <input id="date" name="date" type="hidden">
+        <output id="selected-date" class="selected-date" aria-live="polite">—</output>
       </section>
-      <section class="ticket-wrap" aria-label="Your proposal">
-        <div class="ticket-shadow" aria-hidden="true"></div>
-        <div class="ticket" id="ticket">
-          <div class="ticket-top"><span>ONE PASS. ONE PLAN.</span><span class="ticket-star" aria-hidden="true">✳</span></div>
-          <div class="ticket-heading"><p class="eyebrow">ADMIT ONE / 30 MINUTES</p><h2>Make it a date.</h2><p>No promises. Excellent potential.</p></div>
-          <form id="proposal-form" novalidate>
-            <div class="field"><label for="name">Your name</label><input id="name" name="name" maxlength="80" autocomplete="given-name" placeholder="The person behind the plan" required></div>
-            <div class="field-row"><div class="field"><label for="date">Pick a day</label><input id="date" name="date" type="date" required></div><div class="field"><label for="time">And a time</label><input id="time" name="time" type="time" step="900" required></div></div>
-            <p class="timezone">Berlin time · 30 minutes</p>
-            <div class="field note-field"><label for="description">What's the plan?</label><textarea id="description" name="description" maxlength="500" rows="2" placeholder="Coffee? World domination? Both?" required></textarea></div>
-            <div class="pass-row"><div class="field"><label for="code">Your private pass <span aria-hidden="true">↙</span></label><input id="code" name="code" maxlength="22" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Paste your code here" aria-describedby="pass-note"></div><span class="key-icon" aria-hidden="true">⚿</span></div>
-            <p id="pass-note" class="pass-note">One use. A short life. Make it count.</p>
-            <p id="form-status" class="form-status" role="status" aria-live="polite"></p>
-            <button class="send-button" id="send" type="submit"><span>Send the plan</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m4 12 15-7-6 15-2-6-7-2Zm7 2 8-9"/></svg></button>
-          </form>
-          <div class="ticket-bottom"><span>PRIVATE INVITATION</span><span class="barcode" aria-hidden="true"></span><span>NOT A BOOKING</span></div>
-        </div>
+      <section class="time-panel panel" aria-label="Time">
+        <label class="panel-label" for="time">Time</label>
+        <input id="time" name="time" type="time" step="60" required aria-describedby="timezone">
+        <div id="time-options" class="time-options" role="group" aria-label="Time shortcuts"></div>
+        <p class="timezone" id="timezone">Berlin · 30 min</p>
       </section>
-    </main>
-    <footer><span>A proposal in his inbox. A calendar decision in his hands. <a href="privacy.html">Privacy</a></span><button id="credits-toggle" type="button" aria-expanded="false" aria-controls="credits">Credits +</button><div id="credits" hidden>Original design & code. Visual inspiration: <a href="https://html5up.net/dimension" target="_blank" rel="noopener noreferrer">HTML5 UP</a> · motion principles: <a href="https://tympanus.net/codrops/2020/04/07/rapid-image-layers-animation/" target="_blank" rel="noopener noreferrer">Codrops</a>. No third-party artwork.</div></footer>
-  </div>
+      <section class="details-panel panel" aria-label="Your proposal">
+        <div class="field"><label for="name">Name</label><input id="name" name="name" maxlength="80" autocomplete="given-name" placeholder="Your name" required></div>
+        <div class="field topic-field"><label for="description">Topic</label><textarea id="description" name="description" maxlength="500" rows="4" placeholder="What's the plan?" required></textarea></div>
+        <div class="field code-field"><label for="code">Code</label><input id="code" name="code" maxlength="22" autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="Paste your code"></div>
+        <button class="send-button" id="send" type="submit"><span>Send</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20 20 4M4 4h16v16"/></svg></button>
+      </section>
+    </form>
+    <div class="app-bottom"><p id="form-status" role="status" aria-live="polite" tabindex="-1"></p><nav aria-label="Information"><a href="privacy.html">Privacy</a><button id="credits-toggle" type="button" aria-haspopup="dialog">Credits</button></nav></div>
+  </main>
   <div class="void-scene" id="void-scene" hidden aria-hidden="true"><div class="void-ring"></div><div class="void-core"></div></div>
-  <section class="result" id="no-code" hidden tabindex="-1" aria-labelledby="no-code-title"><span class="result-number">ACCESS: NICE TRY.</span><h2 id="no-code-title">No pass.<br><em>No universe.</em></h2><p>You need a code. Ask Walter for one.<br>Already got one? Reload the page.</p><button class="light-button" id="reload" type="button">Bring it back <span aria-hidden="true">↻</span></button></section>
-  <section class="result success" id="success" hidden tabindex="-1" aria-labelledby="success-title"><div class="envelope" aria-hidden="true"><div class="letter">SLOT<span>YOUR PLAN</span></div><div class="envelope-face"></div></div><span class="result-number">SPECIAL DELIVERY</span><h2 id="success-title">Sent his way.<br><em>Over to Walter.</em></h2><p>Your plan is sent. Adding it to his calendar is up to him.</p><a class="light-button" href="https://wzzzodiac.github.io/">Back to the hub <span aria-hidden="true">↗</span></a></section>
-  <noscript><p class="noscript">You'll need JavaScript to send your plan.</p></noscript>
+  <section class="result" id="no-code" hidden tabindex="-1" aria-labelledby="no-code-title"><span class="result-brand">SLOT</span><div class="result-symbol" aria-hidden="true">?</div><h2 id="no-code-title">Code needed.</h2><p>Ask Walter for one.<br>Got one already? Reload.</p><button class="light-button" id="reload" type="button">Reload ↻</button></section>
+  <section class="result" id="success" hidden tabindex="-1" aria-labelledby="success-title"><span class="result-brand">SLOT</span><div class="dispatch-mark" aria-hidden="true"><svg viewBox="0 0 100 100"><path class="check-path" d="m25 51 17 17 34-36"/></svg></div><h2 id="success-title">Sent.</h2><a class="light-button" href="https://wzzzodiac.github.io/">Back to the hub ↗</a></section>
+  <dialog id="credits"><div class="dialog-heading"><h2>Credits</h2><button class="icon-button" id="credits-close" type="button" aria-label="Close credits">×</button></div><p>Visual reference: <a href="https://www.utopiatokyo.com/" target="_blank" rel="noopener noreferrer">Utopia Tokyo</a>, by SPOTHEROZ &amp; Andrew Measham. Found through <a href="https://curated.design/inspiration/neobrutalism/" target="_blank" rel="noopener noreferrer">Curated</a>.</p><p>Calendar interaction study: <a href="https://weeksync.app/" target="_blank" rel="noopener noreferrer">WeekSync</a>.</p><p>Adapted for SLOT with original code. No third-party artwork, fonts or source code copied.</p></dialog>
+  <noscript><p>JavaScript is needed to use SLOT.</p></noscript>
 </body></html>

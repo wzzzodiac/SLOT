@@ -1,47 +1,42 @@
+import './config.js';
+import './calendar.js';
 const form=document.querySelector('#proposal-form'),send=document.querySelector('#send'),status=document.querySelector('#form-status'),page=document.querySelector('#page');
-const reduced=matchMedia('(prefers-reduced-motion: reduce)');
-const config=window.SLOT_CONFIG??{};
+const reduced=matchMedia('(prefers-reduced-motion: reduce)'),config=window.SLOT_CONFIG??{};
 let busy=false,locked=false,operation=0,animations=[],retry=null,scene='form';
-const fields=['name','date','time','description','code'];
-const sleep=ms=>new Promise(resolve=>setTimeout(resolve,ms));
-function cancelAnimations(){for(const a of animations)a.cancel();animations=[];}
-async function animate(element,frames,options){if(reduced.matches||!element.animate)return;const a=element.animate(frames,options);animations.push(a);try{await a.finished;}catch{}}
-function result(id){scene=id;page.hidden=true;document.querySelector('#void-scene').hidden=true;const el=document.querySelector(id);el.hidden=false;el.focus({preventScroll:true});window.scrollTo(0,0);}
+function cancelAnimations(){for(const animation of animations)animation.cancel();animations=[];}
+async function animate(element,frames,options){if(reduced.matches||!element?.animate)return;const animation=element.animate(frames,options);animations.push(animation);try{await animation.finished;}catch{}}
+function result(id){scene=id;page.hidden=true;document.querySelector('#void-scene').hidden=true;const element=document.querySelector(id);element.hidden=false;element.focus({preventScroll:true});window.scrollTo(0,0);}
 async function vanish(){
-  locked=true;scene='vanishing';const revision=++operation;form.inert=true;document.querySelector('#void-scene').hidden=false;
+  locked=true;scene='vanishing';form.inert=true;const revision=++operation;
   if(reduced.matches){result('#no-code');return;}
-  const ring=document.querySelector('.void-ring');
-  const marks=[...document.querySelectorAll('.top,.intro,.ticket-top,.ticket-heading,.field,.timezone,.pass-note,.send-button,.ticket-bottom,footer,.ticket-shadow')];
-  const cx=innerWidth/2,cy=innerHeight/2;
-  const journeys=marks.map((el,index)=>{const b=el.getBoundingClientRect();return animate(el,[{transform:'none',opacity:1},{transform:`translate(${(cx-b.left-b.width/2)*.28}px,${(cy-b.top-b.height/2)*.28}px) rotate(${index%2?'-':'+'}8deg) scale(.94)`,opacity:1,offset:.32},{transform:`translate(${cx-b.left-b.width/2}px,${cy-b.top-b.height/2}px) rotate(${index%2?-145:170}deg) scale(.001)`,opacity:0}],{duration:1300+index*18,delay:index*12,easing:'cubic-bezier(.6,.05,.7,.2)',fill:'forwards'});});
-  journeys.push(animate(document.querySelector('#ticket'),[{background:'#f2eedf'},{background:'transparent',offset:.28},{background:'transparent'}],{duration:1200,fill:'forwards'}));
-  journeys.push(animate(ring,[{opacity:0,transform:'rotate(-28deg) scale(.1)'},{opacity:1,transform:'rotate(-28deg) scale(1)',offset:.25},{opacity:1,transform:'rotate(50deg) scale(.6)',offset:.8},{opacity:0,transform:'rotate(130deg) scale(.01)'}],{duration:2200,easing:'ease-in',fill:'forwards'}));
+  document.querySelector('#void-scene').hidden=false;const cx=innerWidth/2,cy=innerHeight/2;
+  const pieces=[...document.querySelectorAll('.masthead,.calendar-panel,.time-panel,.details-panel,.app-bottom')];
+  const journeys=pieces.map((element,index)=>{const box=element.getBoundingClientRect(),x=cx-box.left-box.width/2,y=cy-box.top-box.height/2;return animate(element,[{transform:'none',opacity:1},{transform:'translate('+x*.18+'px,'+y*.18+'px) rotate('+((index%2?1:-1)*6)+'deg) scale(.96)',opacity:1,offset:.3},{transform:'translate('+x+'px,'+y+'px) rotate('+((index%2?1:-1)*160)+'deg) scale(.001)',opacity:0}],{duration:1450+index*90,delay:index*35,easing:'cubic-bezier(.6,.05,.7,.2)',fill:'forwards'});});
+  journeys.push(animate(document.querySelector('.void-ring'),[{opacity:0,transform:'rotate(-30deg) scale(.1,.04)'},{opacity:1,transform:'rotate(-30deg) scale(1,.38)',offset:.3},{opacity:0,transform:'rotate(100deg) scale(.01)'}],{duration:2100,fill:'forwards'}));
   await Promise.all(journeys);if(revision===operation){result('#no-code');cancelAnimations();}
 }
-async function celebrate(){locked=true;operation++;result('#success');await Promise.all([animate(document.querySelector('.letter'),[{transform:'translateY(60px)',opacity:0},{transform:'translateY(-15px)',opacity:1,offset:.65},{transform:'translateY(0)',opacity:1}],{duration:1100,easing:'cubic-bezier(.2,.8,.2,1)',fill:'both'}),animate(document.querySelector('.envelope'),[{transform:'translateY(20px) rotate(-8deg)',opacity:0},{transform:'translateY(0) rotate(0deg)',opacity:1}],{duration:650,easing:'ease-out',fill:'both'})]);}
+async function celebrate(){locked=true;operation++;result('#success');await Promise.all([animate(document.querySelector('.dispatch-mark'),[{transform:'translateY(90px) rotate(-15deg) scale(.5)',opacity:0},{transform:'translateY(-12px) rotate(3deg) scale(1.05)',opacity:1,offset:.7},{transform:'none',opacity:1}],{duration:850,easing:'cubic-bezier(.2,.8,.2,1)',fill:'both'}),animate(document.querySelector('.check-path'),[{strokeDasharray:80,strokeDashoffset:80},{strokeDasharray:80,strokeDashoffset:0}],{duration:650,delay:400,easing:'ease-out',fill:'both'})]);}
 function showError(message){status.textContent=message;}
-const date=document.querySelector('#date');
-const berlinNow=new Intl.DateTimeFormat('sv-SE',{timeZone:'Europe/Berlin',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());date.min=berlinNow;
 form.addEventListener('submit',async event=>{
   event.preventDefault();if(busy||locked)return;
   const data=Object.fromEntries(new FormData(form));data.code=data.code.trim();
   if(!data.code){await vanish();return;}
-  if(!/^[A-Za-z0-9_-]{22}$/.test(data.code)){showError('That pass looks different. Paste the full code.');document.querySelector('#code').focus();return;}
+  if(!/^[A-Za-z0-9_-]{22}$/.test(data.code)){showError('Paste the full code.');document.querySelector('#code').focus();return;}
+  if(!data.date){showError('Choose a date.');document.querySelector('.day:not(:disabled)')?.focus();return;}
   if(!form.reportValidity())return;
-  if(!data.name.trim()||!data.description.trim()){showError('A name and a little plan, please.');return;}
-  const fingerprint=JSON.stringify(data);
-  if(!retry||retry.fingerprint!==fingerprint)retry={fingerprint,requestId:crypto.randomUUID()};
-  const body={...data,requestId:retry.requestId};
-  busy=true;send.disabled=true;form.setAttribute('aria-busy','true');send.querySelector('span').textContent='Sending your plan…';status.textContent='';
+  if(!data.name.trim()||!data.description.trim()){showError('Add your name and topic.');return;}
+  const fingerprint=JSON.stringify(data);if(!retry||retry.fingerprint!==fingerprint)retry={fingerprint,requestId:crypto.randomUUID()};
+  const body={...data,requestId:retry.requestId};busy=true;form.inert=true;send.disabled=true;form.setAttribute('aria-busy','true');send.querySelector('span').textContent='Sending…';status.textContent='';
   try{
-    const response=await fetch(`${config.apiBase??''}/api/submit`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(45000)});
-    const answer=await response.json();
-    if(!response.ok)throw new Error(answer.error??'Something went sideways. Try again.');
+    const response=await fetch((config.apiBase??'')+'/api/submit',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body),credentials:'omit',referrerPolicy:'no-referrer',signal:AbortSignal.timeout(45000)});
+    const answer=await response.json();if(!response.ok)throw new Error(answer.error??'Could not send. Try again.');
     if(answer.delivery==='sent'){form.reset();retry=null;await celebrate();}
-    else {locked=true;for(const name of fields)form.elements[name].disabled=true;status.textContent=answer.delivery==='uncertain'?'Your proposal is saved. Email delivery needs a check by Walter. Please don’t send it again.':answer.delivery==='failed'?'Your proposal is saved, but the email hit a snag. Walter can check it. Your pass has been used.':'Your proposal is saved. The email is still on its way. Your pass has been used.';send.querySelector('span').textContent='Proposal received';}
-  }catch(error){showError(error.name==='TimeoutError'||error.name==='TypeError'?'Connection hiccup. Keep this form open and try again — we’ll check the same request.':error.message);}
-  finally{busy=false;form.removeAttribute('aria-busy');if(!locked){send.disabled=false;send.querySelector('span').textContent='Send the plan';}}
+    else{locked=true;status.textContent=answer.delivery==='uncertain'?'Saved. Walter needs to check email delivery. Please do not send again.':answer.delivery==='failed'?'Saved, but email delivery failed. Walter can check it. Your code is used.':'Saved. The email is queued. Your code is used.';send.querySelector('span').textContent='Received';status.focus({preventScroll:true});}
+  }catch(error){showError(error.name==='TimeoutError'||error.name==='TypeError'?'Connection hiccup. Keep this page open and try again — the same request will be checked.':error.message);}
+  finally{busy=false;form.removeAttribute('aria-busy');if(!locked){form.inert=false;send.disabled=false;send.querySelector('span').textContent='Send';}}
 });
 document.querySelector('#reload').addEventListener('click',()=>location.reload());
-document.querySelector('#credits-toggle').addEventListener('click',event=>{const p=document.querySelector('#credits');p.hidden=!p.hidden;event.currentTarget.setAttribute('aria-expanded',String(!p.hidden));event.currentTarget.textContent=p.hidden?'Credits +':'Credits −';});
+const credits=document.querySelector('#credits');
+document.querySelector('#credits-toggle').addEventListener('click',()=>credits.showModal());
+document.querySelector('#credits-close').addEventListener('click',()=>credits.close());
 reduced.addEventListener('change',()=>{if(reduced.matches){cancelAnimations();if(scene==='vanishing')result('#no-code');}});

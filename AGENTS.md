@@ -6,4 +6,4 @@ Keep all authorization and input validation on the server. Codes have 128 bits o
 
 Never commit credentials, real emails, visitor data, generated invitations or OAuth callbacks. Gmail permission is send-only. Administrative routes fail closed. Public preview must never pretend an email was sent. Verify concurrency, retries, expiry, revocation, credential isolation, ICS injection and malicious input before deploying.
 
-Design decisions delegated by Walter: private ticket/stationery with orbital details, success dispatch animation and finite black-hole disappearance when submitted without a code; accessible reduced-motion equivalent. Reuse frontend-patterns references for mechanism and inspiration, not third-party artwork.
+Walter rejected the ticket/orbit design. Public UI must show SLOT and the appointment interface, without a hero, slogans or decorative subtitles. Start new visual directions in the linked live design galleries, inspect concrete references and credit them appropriately. Preserve success feedback and finite black-hole disappearance without a code, with reduced-motion support. Never infer availability or claim a booking is confirmed.
