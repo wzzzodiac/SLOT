@@ -1,4 +1,4 @@
-import {HttpError,randomToken,sha256,keyedHash,validateSubmission,encrypt} from './core.mjs';
+import {HttpError,randomToken,sha256,keyedHash,parseSubmission,validateTimeWindow,encrypt} from './core.mjs';
 import {consume} from './store.mjs';
 import {requireAdmin,verifyJWT} from './auth.mjs';
 import {dispatch} from './mail.mjs';
@@ -29,10 +29,14 @@ async function publicSubmit(request,env,ctx) {
   if(!env.DB)throw new HttpError(503,'The mailbox is not open yet.');
   await rateLimit(request,env);
   const body=await bodyJSON(request),now=Date.now();
-  const proposal=validateSubmission(body,now);
+  const proposal=parseSubmission(body),hash=await sha256(body.code);
+  // An authenticated, unchanged retry keeps the original acceptance time.
+  // consume still checks its digest, so this cannot change an old proposal.
+  const previous=await env.DB.prepare('SELECT created_at FROM requests WHERE id=? AND code_hash=?').bind(body.requestId,hash).first();
+  validateTimeWindow(proposal,previous?.created_at??now);
   // Do not spend invitations while owner authorization is incomplete.
   if(!env.MAILBOX||!env.GOOGLE_CLIENT_ID||!env.GOOGLE_CLIENT_SECRET||!env.TOKEN_ENCRYPTION_KEY||!await env.DB.prepare("SELECT key FROM settings WHERE key='gmail_refresh'").first())throw new HttpError(503,'The mailbox is not open yet. Your code was not used.');
-  const result=await consume(env.DB,{id:body.requestId,hash:await sha256(body.code),digest:await sha256(JSON.stringify(proposal)),proposal,now,limit:Math.min(100,Math.max(1,Number(env.DAILY_SEND_LIMIT)||20))});
+  const result=await consume(env.DB,{id:body.requestId,hash,digest:await sha256(JSON.stringify(proposal)),proposal,now,limit:Math.min(100,Math.max(1,Number(env.DAILY_SEND_LIMIT)||20))});
   await dispatch(env,1);
   const delivery=await env.DB.prepare('SELECT state FROM outbox WHERE request_id=?').bind(body.requestId).first();
   return json({...result,delivery:delivery?.state??'pending'},202);

@@ -34,7 +34,7 @@ export function berlinToUTC(local) {
   if (matches.length !== 1) throw new HttpError(400, 'That time changes with daylight saving. Pick another time.');
   return matches[0];
 }
-export function validateSubmission(body, now = Date.now()) {
+export function parseSubmission(body) {
   if (!body || typeof body !== 'object' || Array.isArray(body)) throw new HttpError(400,'Check your request.');
   const allowed = new Set(['code','requestId','name','date','time','description']);
   if (Object.keys(body).some(key => !allowed.has(key))) throw new HttpError(400,'Unexpected field.');
@@ -44,9 +44,13 @@ export function validateSubmission(body, now = Date.now()) {
   const description = clean(body.description,500,'the note',true);
   if (typeof body.date !== 'string' || typeof body.time !== 'string') throw new HttpError(400,'Choose a date and time.');
   const start = berlinToUTC(`${body.date}T${body.time}`);
-  if (start < now+15*60000 || start > now+180*86400000) throw new HttpError(400,'Pick a time from 15 minutes to 180 days ahead.');
   return { name, description, start, end:start+30*60000, zone:'Europe/Berlin' };
 }
+export function validateTimeWindow(proposal, now = Date.now()) {
+  if (proposal.start < now+15*60000 || proposal.start > now+180*86400000) throw new HttpError(400,'Pick a time from 15 minutes to 180 days ahead.');
+  return proposal;
+}
+export function validateSubmission(body, now = Date.now()) { return validateTimeWindow(parseSubmission(body),now); }
 function icalText(value) { return value.replaceAll('\\','\\\\').replaceAll('\r\n','\n').replaceAll('\r','\n').replaceAll('\n','\\n').replaceAll(';','\\;').replaceAll(',','\\,'); }
 export function foldLine(line) {
   let out = '', current = '', size = 0;
