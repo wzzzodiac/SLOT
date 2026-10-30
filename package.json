@@ -4,10 +4,14 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node tools/build-assets.mjs",
+    "pretest": "node tools/build-assets.mjs",
     "test": "node --test test/*.test.mjs",
     "dev": "wrangler dev",
     "db:local": "wrangler d1 migrations apply slot --local",
-    "deploy": "wrangler deploy"
+    "deploy": "wrangler deploy",
+    "predeploy:fallback": "node tools/build-assets.mjs",
+    "deploy:fallback": "wrangler deploy --config wrangler.fallback.jsonc"
   },
   "devDependencies": {
     "@napi-rs/keyring": "1.3.0",

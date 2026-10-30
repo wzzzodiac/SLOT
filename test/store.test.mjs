@@ -1,7 +1,7 @@
 import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import {database} from './helpers.mjs';
-import {consume,claimMail,markSending} from '../src/store.mjs';
+import {consume,claimMail,markSending,resumeAfterReconnect} from '../src/store.mjs';
 const id='d587d91c-4b72-4f1e-8fd2-4ee3c856363e';
 function fixture(){const {sql,db}=database();const now=10000000;sql.prepare('INSERT INTO invitations(hash,created_at,expires_at)VALUES(?,?,?)').run('hash',now-1000,now+1000);return{sql,db,now};}
 const request=(now,extra={})=>({id,hash:'hash',digest:'digest',proposal:{name:'Test'},now,...extra});
@@ -13,3 +13,4 @@ test('trigger failure rolls back code consumption and request insertion',async()
 test('two dispatchers cannot send one job; sending cannot be reclaimed',async()=>{const {db,now}=fixture();await consume(db,request(now));const first=await claimMail(db,now,'lease-a');assert.equal(first.request_id,id);assert.equal(await claimMail(db,now,'lease-b'),null);assert.equal(await markSending(db,id,'lease-b'),false);assert.equal(await markSending(db,id,'lease-a'),true);assert.equal(await claimMail(db,now+999999,'lease-c'),null);});
 test('stale preparation lease is reclaimable and stale owner cannot send',async()=>{const {db,now}=fixture();await consume(db,request(now));await claimMail(db,now,'old');await claimMail(db,now+130000,'new');assert.equal(await markSending(db,id,'old'),false);assert.equal(await markSending(db,id,'new'),true);});
 test('daily acceptance cap is enforced at insertion',async()=>{const {db,now}=fixture();await assert.rejects(consume(db,request(now,{limit:0})));});
+test('reconnection resumes only pre-send authorization failures',async()=>{for(const [state,error,sendingAt,expected] of [['failed','gmail_reconnect_required',null,'pending'],['failed','gmail_reconnect_required',123,'failed'],['uncertain','gmail_reconnect_required',null,'uncertain'],['failed','gmail_rejected_401',null,'failed'],['sent','gmail_reconnect_required',null,'sent']]){const {db,sql,now}=fixture();await consume(db,request(now));sql.prepare('UPDATE outbox SET state=?,error=?,sending_at=?').run(state,error,sendingAt);await resumeAfterReconnect(db,now+1000);assert.equal(sql.prepare('SELECT state FROM outbox').get().state,expected);assert.equal(sql.prepare('SELECT count(*) n FROM requests').get().n,1);assert.equal(sql.prepare('SELECT used_request_id FROM invitations').get().used_request_id,id);}});

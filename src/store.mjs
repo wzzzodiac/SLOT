@@ -29,3 +29,8 @@ export async function markSending(db,id,lease,now=Date.now()) {
     WHERE request_id=? AND lease=? AND state='preparing' RETURNING request_id`).bind(now,id,lease).first();
   return !!row;
 }
+
+export async function resumeAfterReconnect(db,now=Date.now()) {
+  // Only failures before any Gmail POST are eligible. Ambiguous deliveries stay held.
+  return db.prepare("UPDATE outbox SET state='pending',attempts=0,available_at=?,lease=NULL,lease_until=NULL,error=NULL WHERE state='failed' AND error='gmail_reconnect_required' AND sending_at IS NULL").bind(now).run();
+}

@@ -69,8 +69,9 @@ export function createICS(id, proposal, createdAt) {
 export function createMIME(id, proposal, createdAt, recipient) {
   if (!/^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(recipient) || /[\r\n]/.test(recipient)) throw new Error('Invalid configured mailbox');
   const boundary = `slot_${id}`;
-  const when = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',dateStyle:'full',timeStyle:'short'}).format(proposal.start);
-  const text = `${proposal.name} wants a little of your time.\n\n${when} (Europe/Berlin)\n30 minutes\n\n${proposal.description}\n\nOpen the attached .ics if you want to add it. This is a proposal, not a confirmed booking.\n\nSLOT / ${id}`;
+  const day = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',dateStyle:'full'}).format(proposal.start);
+  const clock = new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Berlin',hour:'2-digit',minute:'2-digit',hourCycle:'h23'});
+  const text = `Name: ${proposal.name}\n\nTopic:\n${proposal.description}\n\nDate and time:\n${day}\n${clock.format(proposal.start)}–${clock.format(proposal.end)} (Europe/Berlin)\n30 minutes\n\n====================\n\nSLOT — A little time.\nThis is a proposal, not a confirmed booking.\nOpen a-little-time.ics if you want to add it to your calendar.\n\nReference: ${id}\n`;
   const enc = s => { const bytes=new TextEncoder().encode(s); let raw=''; for(const b of bytes)raw+=String.fromCharCode(b); return btoa(raw).match(/.{1,76}/g)?.join('\r\n') ?? ''; };
   return [`From: ${recipient}`,`To: ${recipient}`,'Subject: SLOT - Someone wants a little time',`Message-ID: <${id}@slot.invalid>`,'MIME-Version: 1.0',`Content-Type: multipart/mixed; boundary="${boundary}"`,'',`--${boundary}`,'Content-Type: text/plain; charset=UTF-8','Content-Transfer-Encoding: base64','',enc(text),`--${boundary}`,'Content-Type: text/calendar; charset=UTF-8','Content-Disposition: attachment; filename="a-little-time.ics"','Content-Transfer-Encoding: base64','',enc(createICS(id,proposal,createdAt)),`--${boundary}--`,''].join('\r\n');
 }

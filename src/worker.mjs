@@ -1,7 +1,8 @@
 import {HttpError,randomToken,sha256,keyedHash,parseSubmission,validateTimeWindow,encrypt} from './core.mjs';
-import {consume} from './store.mjs';
+import {consume,resumeAfterReconnect} from './store.mjs';
 import {requireAdmin,verifyJWT} from './auth.mjs';
 import {dispatch} from './mail.mjs';
+import {staticAsset,buildId} from './static.mjs';
 
 const secureHeaders={'Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer','Content-Security-Policy':"default-src 'none'; frame-ancestors 'none'"};
 const json=(data,status=200)=>new Response(JSON.stringify(data),{status,headers:{...secureHeaders,'Content-Type':'application/json; charset=utf-8'}});
@@ -54,6 +55,7 @@ async function oauthCallback(request,env) {
   if(identity.email?.toLowerCase()!==env.MAILBOX?.toLowerCase()||identity.email_verified!==true||!tokens.refresh_token||!tokens.scope?.split(' ').includes('https://www.googleapis.com/auth/gmail.send'))throw new HttpError(403,'Connect the configured owner mailbox only.');
   const value=await encrypt(env.TOKEN_ENCRYPTION_KEY,tokens.refresh_token);
   await env.DB.prepare("INSERT INTO settings(key,value) VALUES('gmail_refresh',?) ON CONFLICT(key) DO UPDATE SET value=excluded.value").bind(value).run();
+  await resumeAfterReconnect(env.DB);
   return new Response(null,{status:303,headers:{...secureHeaders,Location:'/admin/','Set-Cookie':'__Host-slot_oauth=; Path=/; Secure; HttpOnly; SameSite=Lax; Max-Age=0'}});
 }
 async function admin(request,env) {
@@ -98,20 +100,21 @@ export default {
     try {
       if(url.pathname.startsWith('/api/admin/'))response=await admin(request,env);
       else if(url.pathname==='/admin'||url.pathname.startsWith('/admin/')) {
-        await requireAdmin(request,env); response=await env.ASSETS.fetch(request);
+        await requireAdmin(request,env); response=await staticAsset(request,env);
       } else if(url.pathname==='/api/submit') {
         if(request.method==='OPTIONS') {
           if(origin!==env.PUBLIC_ORIGIN&&origin!==url.origin)throw new HttpError(403,'Origin not allowed.');
           response=new Response(null,{status:204,headers:{...secureHeaders,'Access-Control-Allow-Methods':'POST','Access-Control-Allow-Headers':'Content-Type','Access-Control-Max-Age':'600'}});
         } else if(request.method==='POST')response=await publicSubmit(request,env,ctx);
         else throw new HttpError(405,'Use POST.');
-      } else if(url.pathname==='/api/health')response=json({service:'SLOT',version:'0.1.0'});
+      } else if(url.pathname==='/api/health')response=json({service:'SLOT',version:'0.1.0',build:buildId,staticMode:env.ASSETS?'assets':'bundled'});
       else if(url.pathname.startsWith('/api/'))throw new HttpError(404,'Not found.');
-      else response=await env.ASSETS.fetch(request);
+      else response=await staticAsset(request,env);
     } catch(error) {
       response=json({error:error instanceof HttpError?error.message:'The mailbox hit a snag. Try later.'},error instanceof HttpError?error.status:503);
     }
     const out=new Response(response.body,response);
+    if(url.pathname==='/admin'||url.pathname.startsWith('/admin/')||url.pathname.startsWith('/api/admin/'))out.headers.set('Cache-Control','private, no-store');
     if(url.pathname==='/api/submit'&&(origin===env.PUBLIC_ORIGIN||origin===url.origin)){out.headers.set('Access-Control-Allow-Origin',origin);out.headers.set('Vary','Origin');}
     return out;
   },

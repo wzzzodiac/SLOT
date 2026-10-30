@@ -16,11 +16,13 @@ The public page accepts a name, a date/time in Europe/Berlin, a short note and a
 - Persisted, HMAC-pseudonymized attempt limits; daily acceptance cap (20 initially). CORS is not authentication.
 - Gmail has no exactly-once send primitive. A timeout after sending begins is held as `uncertain`, never automatically replayed. Known pre-send preparation failures use bounded retries. The private desk displays failed/uncertain counts.
 
-The authorization is send-only (`gmail.send`) plus basic Google identity to verify the configured owner. No inbox-reading or calendar permission is requested. Revocation/invalid refresh tokens require reconnecting from the desk. Google testing-mode authorizations can expire weekly; a personal-use production consent configuration is intended, subject to the actual account configuration.
+The authorization is send-only (`gmail.send`) plus basic Google identity to verify the configured owner. No inbox-reading or calendar permission is requested. Revocation/invalid refresh tokens require reconnecting from the desk. Consent is in production for this personal app; it remains unverified by Google. Access and the backend restrict administration to the owner.
 
 ## Development
 
 Node 24. `npm ci`, `npm test`, `npm run db:local`, `npm run dev`.
+
+Wrangler builds automatically from the original public files. Normal deployment uses `npm run deploy` and Cloudflare Static Assets. If the provider's assets upload API is unavailable, `npm run deploy:fallback` serves a generated copy of the small text assets from the Worker, with the same authentication and CSP; it does not add another service. The generated fallback config stays ignored. Return to normal deployment when uploads recover. `/api/health` reports the deterministic source build and active static mode.
 
 `wrangler.jsonc` describes the Worker and its dedicated D1 database. Never commit `.dev.vars`, `.secrets/`, OAuth callbacks or real visitor payloads. Keep Wrangler's auth in the OS keyring.
 
@@ -32,10 +34,10 @@ For GitHub Pages set `public/config.js` to the Worker origin. The workflow publi
 
 ## Operation
 
-The one-minute Cron handles queued mail. No active PC is needed. Provider failure may delay or prevent a notification; accepted proposals stay recorded. The code does not become usable again. Do not requeue `uncertain` work without manually checking the Gmail Sent folder. Re-importing an ICS may create duplicates depending on the calendar client; SLOT cannot modify an already imported event.
+The one-minute Cron handles queued mail. No active PC is needed. Provider failure may delay or prevent a notification; accepted proposals stay recorded. The code does not become usable again. Reconnecting Gmail resumes only authorization failures that happened before any Gmail POST. Other failed or `uncertain` work is held; do not requeue it without checking the Gmail Sent folder. Re-importing an ICS may create duplicates depending on the calendar client; SLOT cannot modify an already imported event. Proposal records remain in the private backend until the owner removes them; the privacy page states this explicitly.
 
 ## Design and verification
 
 Original ticket/orbit design and native browser animation. Reference credits are in the page and [decisions](docs/decisions.md). Reduced-motion users receive the same outcomes without the collapse. Empty-code submission is a playful UI transition; backend validation applies independently.
 
-The initial self-email ICS test imported correctly on the owner's iPhone with the expected Berlin time. Unit/integration tests use synthetic data and mocked Gmail; they do not prove delivery by the deployed Gmail OAuth flow. Deployment evidence and remaining checks must be recorded separately.
+The initial self-email ICS test imported correctly on the owner's iPhone with the expected Berlin time. The deployed Gmail OAuth flow also delivered a real self-email with its ICS attachment, checked through Gmail after submission from GitHub Pages. Automated tests use synthetic data and mocked Gmail; a separate workerd/D1 runtime check covers concurrency. See [decisions and verification](docs/decisions.md) for the scope and remaining physical-device check.

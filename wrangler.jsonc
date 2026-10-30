@@ -4,9 +4,11 @@
   "account_id": "951995f8b84c26618d41035f598126e5",
   "main": "src/worker.mjs",
   "compatibility_date": "2026-10-30",
+  "preview_urls": false,
+  "build": { "command": "node tools/build-assets.mjs" },
   "assets": { "directory": "public", "binding": "ASSETS", "run_worker_first": ["/api/*", "/admin", "/admin/*"] },
   "d1_databases": [{ "binding": "DB", "database_name": "slot", "database_id": "c784c0d2-869d-4fa7-8ce8-a4efca9aad2a", "migrations_dir": "migrations" }],
   "triggers": { "crons": ["* * * * *"] },
-  "vars": { "PUBLIC_ORIGIN": "https://wzzzodiac.github.io", "MAIL_MODE": "gmail", "DAILY_SEND_LIMIT": "20" },
+  "vars": { "PUBLIC_ORIGIN": "https://wzzzodiac.github.io", "MAIL_MODE": "gmail", "DAILY_SEND_LIMIT": "20", "ACCESS_TEAM": "square-shape-ce86", "ACCESS_AUD": "a7a26107af33373340c504c5d5a77a88eb2477292c35f805bf05887e61cde8a8" },
   "observability": { "enabled": false }
 }
